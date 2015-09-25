@@ -67,8 +67,6 @@ angular.module('stocksAppApp')
       }
     };
 
-    // addTicker('GOOG');
-
 
     $scope.awesomeThings = [];
 
@@ -77,7 +75,13 @@ angular.module('stocksAppApp')
       awesomeThings.forEach(function(thing) {
         addTicker(thing.name);
       });
-      socket.syncUpdates('thing', $scope.awesomeThings);
+      socket.syncUpdates('thing', $scope.awesomeThings, function(event, item, array) {
+        if (event === 'created') {
+          addTicker(item.name);
+        } else if (event === 'deleted') {
+          removeTicker(item.name);
+        }
+      });
     });
 
     $scope.addThing = function() {
@@ -85,13 +89,11 @@ angular.module('stocksAppApp')
         return;
       }
       $http.post('/api/things', { name: $scope.newThing });
-      addTicker($scope.newThing);
       $scope.newThing = '';
     };
 
     $scope.deleteThing = function(thing) {
       $http.delete('/api/things/' + thing._id);
-      removeTicker(thing.name);
     };
 
     $scope.$on('$destroy', function () {
